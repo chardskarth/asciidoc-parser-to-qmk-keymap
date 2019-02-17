@@ -1,0 +1,25 @@
+{
+  "name": "asciidoc-parser-to-qmk-keymap",
+  "version": "1.0.0",
+  "description": "Asciidoc to qmk keymap.c converter",
+  "main": "index.js",
+  "engines" : {
+    "node": "10.13.0"
+  },
+  "repository": "https://github.com/chardskarth/asciidoc-parser-to-qmk-keymap.git",
+  "author": "Richard Glen Domingo <chardskarth@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "babel-node index.js"
+  },
+  "devDependencies": {
+    "@babel/cli": "7.2.3",
+    "@babel/core": "7.3.3",
+    "@babel/node": "7.2.2",
+    "@babel/preset-env": "7.3.1",
+    "@babel/preset-flow": "7.0.0"
+  },
+  "dependencies": {
+    "asciidoctor.js": "1.5.9"
+  }
+}
