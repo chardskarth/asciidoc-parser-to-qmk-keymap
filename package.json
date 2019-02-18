@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Asciidoc to qmk keymap.c converter",
   "main": "index.js",
-  "engines" : {
+  "engines": {
     "node": "10.13.0"
   },
   "repository": "https://github.com/chardskarth/asciidoc-parser-to-qmk-keymap.git",
@@ -20,6 +20,7 @@
     "@babel/preset-flow": "7.0.0"
   },
   "dependencies": {
-    "asciidoctor.js": "1.5.9"
+    "asciidoctor.js": "1.5.9",
+    "lodash": "4.17.11"
   }
 }
