@@ -1,6 +1,7 @@
 import { basename, resolve } from "path";
 import Asciidoctor from "asciidoctor.js";
 import { flatten, chain } from "lodash";
+import FuzzySet from "fuzzyset.js";
 
 const asciidoc = Asciidoctor();
 
@@ -78,6 +79,36 @@ const tryKeyAndDescription = x => {
   }
 };
 
+const createDescriptionFuzzySet = keyAndDescriptions => {
+  const descriptions = ({ description }) => description;
+  const mappedDescriptions = keyAndDescriptions.map(descriptions);
+  const fuzzyset = FuzzySet(mappedDescriptions, false);
+
+  return word => {
+    const matches = fuzzyset.get(word);
+    if (!matches) {
+      return false;
+    }
+
+    const [firstMatch, secondMatch] = matches;
+    const [score, firstMatchString] = firstMatch;
+    const indexMatch = keyAndDescriptions.findIndex(
+      ({ description }, ii) => description === firstMatchString
+    );
+
+    if (indexMatch === -1) {
+      return false;
+    }
+
+    return {
+      index: indexMatch,
+      score,
+      secondMatch,
+      ...keyAndDescriptions[indexMatch]
+    };
+  };
+};
+
 const keyAndDescriptions = chain(QMK_DOCS_FILES)
   .map(asciiLoadAndDocumentMatches)
   .thru(x => flatten(x))
@@ -87,4 +118,20 @@ const keyAndDescriptions = chain(QMK_DOCS_FILES)
   .filter(({ key }) => key)
   .value();
 
-console.log(JSON.stringify(keyAndDescriptions));
+const descriptionFuzzySet = createDescriptionFuzzySet(keyAndDescriptions);
+
+// console.log(JSON.stringify(keyAndDescriptions));
+console.log(descriptionFuzzySet("`A`"));
+console.log(descriptionFuzzySet("`z`"));
+console.log(descriptionFuzzySet("`?`"));
+console.log(descriptionFuzzySet("`a` and `A`"));
+console.log(descriptionFuzzySet("Ignore this key (NOOP)"));
+console.log(descriptionFuzzySet("NOOP"));
+console.log(descriptionFuzzySet("Stp"));
+console.log(descriptionFuzzySet("Bksp"));
+console.log(descriptionFuzzySet("Bckspce"));
+console.log(descriptionFuzzySet("Hyper"));
+console.log(descriptionFuzzySet("A"));
+console.log(descriptionFuzzySet("`=`"));
+console.log(descriptionFuzzySet("`+`"));
+console.log(descriptionFuzzySet("MsUp"));
