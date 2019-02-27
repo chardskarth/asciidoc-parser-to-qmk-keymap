@@ -40,17 +40,6 @@ const asciiLoadAndDocumentMatches = fileLocation => {
   return retVal;
 };
 
-const getKey = pipedLine => {
-  const [ignore, keyWithTilde] = pipedLine;
-  const keySplitted = keyWithTilde.split("`");
-
-  if (keySplitted.length !== 3) {
-    return false;
-  }
-  const [ignore2, retVal] = keySplitted;
-  return retVal;
-};
-
 const getKeyAliasDescription = pipedLine => {
   const [ignore, keyWithTilde, alias, description] = pipedLine;
   const keySplitted = keyWithTilde.split("`");
@@ -80,7 +69,7 @@ const tryKeyAndDescription = x => {
   }
 };
 
-const createDescriptionFuzzySet = keyAndDescriptions => {
+const createFuzzySet = keyAndDescriptions => {
   const descriptions = ({ description }) => description;
   const keys = ({ key }) => key;
   const alias = ({ alias }) => alias;
@@ -133,10 +122,11 @@ const keyAndDescriptions = chain(QMK_DOCS_FILES)
   .filter(({ key }) => key)
   .value();
 
-const descriptionFuzzySet = createDescriptionFuzzySet(keyAndDescriptions);
+const descriptionFuzzySet = createFuzzySet(keyAndDescriptions);
 
 // console.log(JSON.stringify(keyAndDescriptions));
 console.log(descriptionFuzzySet("`A`"));
+
 console.log(descriptionFuzzySet("`z`"));
 console.log(descriptionFuzzySet("`?`"));
 console.log(descriptionFuzzySet("`a` and `A`"));
