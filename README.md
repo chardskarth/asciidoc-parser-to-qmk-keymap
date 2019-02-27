@@ -6,7 +6,7 @@ Let awesome asciidoc be single truth for qmk keymap source code
 - [x] add useful mds in our list of docs to parse
 - [x] create map of { keycode: string, description: string[] }
 - [x] use `fuzzyset.js`; create keycodeFuzzySet { get(string): { index, key, description } }
-- [ ] improve descriptionFuzzySet; add secondMatch, keyMatch, aliasMatch
-- [ ] improve descriptionFuzzySet; support `(kc)`
+- [x] improve descriptionFuzzySet; add secondMatch, keyMatch, aliasMatch
 - [ ] define asciidoc syntax; LAYER, MACRO
+- [ ] improve descriptionFuzzySet; support `(kc)`
 - [ ] create `readErgodoxEzKeyboardFn`: string[][]

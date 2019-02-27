@@ -26,12 +26,6 @@ const asciiLoadAndDocumentMatches = fileLocation => {
         const linesLength = obj.lines.map(x => x.split("|").length);
         const isMatch = linesLength.every(x => x === 5);
         if (isMatch) {
-          //           console.log(
-          //             `${obj.parent.converted_title} is a match in file ${basename(
-          //               fileLocation,
-          //               ".md"
-          //             )}`
-          //           );
           retVal.push({
             title: obj.parent.converted_title,
             lines: obj.lines,
@@ -47,8 +41,8 @@ const asciiLoadAndDocumentMatches = fileLocation => {
 };
 
 const getKey = pipedLine => {
-  const [ignore, key] = pipedLine;
-  const keySplitted = key.split("`");
+  const [ignore, keyWithTilde] = pipedLine;
+  const keySplitted = keyWithTilde.split("`");
 
   if (keySplitted.length !== 3) {
     return false;
@@ -57,19 +51,26 @@ const getKey = pipedLine => {
   return retVal;
 };
 
-const getDescription = pipedLine => {
-  const [ignore, ignore1, ignore2, retVal] = pipedLine;
-  return retVal.trim();
-};
+const getKeyAliasDescription = pipedLine => {
+  const [ignore, keyWithTilde, alias, description] = pipedLine;
+  const keySplitted = keyWithTilde.split("`");
 
-const keyAndDescription = x => ({
-  key: getKey(x),
-  description: getDescription(x)
-});
+  if (keySplitted.length !== 3) {
+    return { key: false };
+  }
+
+  const [ignore2, key] = keySplitted;
+
+  return {
+    key,
+    alias: alias.trim(),
+    description: description.trim()
+  };
+};
 
 const tryKeyAndDescription = x => {
   try {
-    return keyAndDescription(x);
+    return getKeyAliasDescription(x);
   } catch (err) {
     return {
       key: false,
@@ -81,30 +82,44 @@ const tryKeyAndDescription = x => {
 
 const createDescriptionFuzzySet = keyAndDescriptions => {
   const descriptions = ({ description }) => description;
+  const keys = ({ key }) => key;
+  const alias = ({ alias }) => alias;
+
   const mappedDescriptions = keyAndDescriptions.map(descriptions);
-  const fuzzyset = FuzzySet(mappedDescriptions, false);
+  const mappedKeys = keyAndDescriptions.map(keys);
+  const mappedAlias = keyAndDescriptions.map(alias);
 
-  return word => {
-    const matches = fuzzyset.get(word);
-    if (!matches) {
-      return false;
-    }
+  const fuzzysetDescriptions = FuzzySet(mappedDescriptions, false);
+  const fuzzysetKeys = FuzzySet(mappedKeys, false);
+  const fuzzysetAlias = FuzzySet(mappedAlias, false);
 
-    const [firstMatch, secondMatch] = matches;
-    const [score, firstMatchString] = firstMatch;
-    const indexMatch = keyAndDescriptions.findIndex(
-      ({ description }, ii) => description === firstMatchString
+  const findIndexAsSpecifiedKey = (toFind, asKey) =>
+    keyAndDescriptions.findIndex(
+      ({ [asKey]: keyValue }) => keyValue === toFind
     );
 
-    if (indexMatch === -1) {
-      return false;
-    }
+  const updateMatchResult = asKey => match => {
+    const [score, matchString] = match;
+    const indexMatch = findIndexAsSpecifiedKey(matchString, asKey);
 
     return {
       index: indexMatch,
       score,
-      secondMatch,
       ...keyAndDescriptions[indexMatch]
+    };
+  };
+
+  return word => {
+    const descriptionMatches = fuzzysetDescriptions.get(word) || [];
+    const keyMatches = fuzzysetKeys.get(word) || [];
+    const aliasMatches = fuzzysetAlias.get(word) || [];
+
+    return {
+      descriptionMatches: descriptionMatches.map(
+        updateMatchResult("description")
+      ),
+      keyMatches: keyMatches.map(updateMatchResult("key")),
+      aliasMatches: aliasMatches.map(updateMatchResult("alias"))
     };
   };
 };
